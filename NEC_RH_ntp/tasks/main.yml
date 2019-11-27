@@ -1,0 +1,5 @@
+---
+
+# tasks file for ntp setting
+
+  - import_tasks: modify.yml

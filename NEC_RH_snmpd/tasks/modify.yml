@@ -1,0 +1,215 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+#
+# set snmpd
+
+  - name: install package
+    yum:
+      name: net-snmp
+      state: present
+
+  - name: start and enable service
+    service:
+      name: 'snmpd'
+      state: 'started'
+      enabled: 'yes'
+
+  - name: set com2sec
+    lineinfile:
+      dest: '/etc/snmp/snmpd.conf'
+      insertafter: '^#\s*sec.name\s+source\s+community'
+      line: "com2sec {{ item.sec_name }}  {{ item.source }}       {{ item.community }}"
+      state: present
+    with_items: "{{ VAR_NEC_RH_snmpd_info.com2sec | default([]) }}"
+    when:
+      - item.sec_name is defined and not not item.sec_name
+      - item.source is defined and not not item.source
+      - item.community is defined and not not item.community
+
+  - name: set group
+    lineinfile:
+      dest: '/etc/snmp/snmpd.conf'
+      insertafter: '^#\s*groupName\s+securityModel\s+securityName'
+      line: "group   {{ item.groupName }} {{ item.securityModel }}          {{ item.securityName }}"
+      state: present
+    with_items: "{{ VAR_NEC_RH_snmpd_info.group | default([]) }}"
+    when:
+      - item.groupName is defined and not not item.groupName
+      - item.securityModel is defined and not not item.securityModel
+      - item.securityName is defined and not not item.securityName
+
+  - name: set view
+    lineinfile:
+      dest: '/etc/snmp/snmpd.conf'
+      insertafter: '^#\s*name\s+incl/excl\s+subtree\s+mask'
+      line: "view    {{ item.name }}    {{ item.incl_excl }}   {{ item.subtree }} {{ item.mask | d() }}"
+      state: present
+    with_items: "{{ VAR_NEC_RH_snmpd_info.view | default([]) }}"
+    when:
+      - item.name is defined and not not item.name
+      - item.incl_excl is defined and not not item.incl_excl
+      - item.subtree is defined and not not item.subtree
+
+  - name: set access
+    block:
+      - name: set access 1
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: '^#\s*group\s+context\s+sec.model\s+sec.level\s+prefix\s+read\s+write\s+notif'
+          line: 'access  {{ item.group }} ""      {{ item.sec_model }}       {{ item.sec_level }}    {{ item.prefix }}  {{ item.read }} {{ item.write }} {{ item.notif }}'
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.access | default([]) }}"
+        when: item.context == ''
+      - name: set access 2
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: '^#\s*group\s+context\s+sec.model\s+sec.level\s+prefix\s+read\s+write\s+notif'
+          line: 'access  {{ item.group }} {{ item.context }}    {{ item.sec_model }}    {{ item.sec_level }}    {{ item.prefix }}  {{ item.read }} {{ item.write }} {{ item.notif }}'
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.access | default([]) }}"
+        when: not not item.context
+    when:
+      - item.group is defined and not not item.group
+      - item.context is defined
+      - item.sec_model is defined and not not item.sec_model
+      - item.sec_level is defined and not not item.sec_level
+      - item.prefix is defined and not not item.prefix
+      - item.read is defined and not not item.read
+      - item.write is defined and not not item.write
+      - item.notif is defined and not not item.notif
+
+  - name: set syslocation
+    lineinfile:
+      dest: '/etc/snmp/snmpd.conf'
+      regexp: '^\s*syslocation'
+      line: "syslocation {{ VAR_NEC_RH_snmpd_info.syslocation }}"
+      state: present
+    when: VAR_NEC_RH_snmpd_info.syslocation is defined and not not VAR_NEC_RH_snmpd_info.syslocation
+
+  - name: set syscontact
+    lineinfile:
+      dest: '/etc/snmp/snmpd.conf'
+      regexp: '^\s*syscontact'
+      line: "syscontact {{ VAR_NEC_RH_snmpd_info.syscontact }}"
+      state: present
+    when: VAR_NEC_RH_snmpd_info.syscontact is defined and not not VAR_NEC_RH_snmpd_info.syscontact
+
+# set trap agent
+  - name: set trap agent
+    block:
+      - name: set trapcommunity
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "trapcommunity {{ item.trapcommunity }}"
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.trap_agent.community }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.community is defined
+          - item.trapcommunity is defined and not not item.trapcommunity
+
+      - name: set agent trap2sink
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "trap2sink {{ item.manager_ip }} {{ item.trapcommunity }}"
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.trap_agent.community }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.community is defined
+          - item.manager_ip is defined and not not item.manager_ip
+          - item.trapcommunity is defined and not not item.trapcommunity
+
+      - name: set agent user
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: 'createUser {{ item.username }} {{ item.hashmode }} "{{ item.password }}"'
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.trap_agent.user }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.user is defined
+          - item.username is defined and not not item.username
+          - item.hashmode is defined and not not item.hashmode
+          - item.password is defined and not not item.password
+
+      - name: set agent rouser
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "rouser {{ item.username }}"
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.trap_agent.user }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.user is defined
+          - item.username is defined and not not item.username
+
+      - name: set agent notificationEvent 1
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "notificationEvent {{ item.ENAME }} {{ item.NOTIFICATION }}"
+          state: present
+        with_items:
+          - "{{ VAR_NEC_RH_snmpd_info.trap_agent.notificationEvent }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.notificationEvent is defined
+          - item.ENAME is defined and not not item.ENAME
+          - item.NOTIFICATION is defined and not not item.NOTIFICATION
+          - item.OPTIONS is undefined
+
+      - name: set agent notificationEvent 2
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "notificationEvent {{ item.ENAME }} {{ item.NOTIFICATION }} {{ item.OPTIONS }}"
+          state: present
+        with_items:
+          - "{{ VAR_NEC_RH_snmpd_info.trap_agent.notificationEvent }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.notificationEvent is defined
+          - item.ENAME is defined and not not item.ENAME
+          - item.NOTIFICATION is defined and not not item.NOTIFICATION
+          - item.OPTIONS is defined and not not item.OPTIONS
+
+      - name: set agent monitor
+        lineinfile:
+          dest: '/etc/snmp/snmpd.conf'
+          insertafter: EOF
+          line: "monitor {{ item.OPTIONS|d() }} -e {{ item.ENAME }} \"{{ item.NAME }}\" {{ item.EXPRESSION }}"
+          state: present
+        with_items:
+          - "{{ VAR_NEC_RH_snmpd_info.trap_agent.monitor }}"
+        when:
+          - VAR_NEC_RH_snmpd_info.trap_agent.monitor is defined
+          - item.ENAME is defined and not not item.ENAME
+          - item.EXPRESSION is defined and not not item.EXPRESSION
+          - item.NAME is defined and not not item.NAME
+    when: VAR_NEC_RH_snmpd_info.trap_agent is defined
+
+# set trap manager
+  - name: set trap manager
+    block:
+      - name: set trapcommunity
+        lineinfile:
+          dest: '/etc/snmp/snmptrapd.conf'
+          insertafter: EOF
+          line: "authCommunity   {{ item.behavior }} {{ item.trapcommunity }}"
+          state: present
+        with_items: "{{ VAR_NEC_RH_snmpd_info.trap_manager }}"
+        when:
+          - item.behavior is defined and not not item.behavior
+          - item.trapcommunity is defined and not not item.trapcommunity
+    when: VAR_NEC_RH_snmpd_info.trap_manager is defined
+
+  - name: snmpd_restart
+    service: >
+      name=snmpd
+      state=restarted
+    when: VAR_NEC_RH_snmpd_info.com2sec is defined or VAR_NEC_RH_snmpd_info.group is defined or VAR_NEC_RH_snmpd_info.view is defined or VAR_NEC_RH_snmpd_info.access is defined or VAR_NEC_RH_snmpd_info.syslocation is defined or VAR_NEC_RH_snmpd_info.syscontact is defined or VAR_NEC_RH_snmpd_info.trap_agent is defined
+
+  - name: snmptrapd_restart
+    service: >
+      name=snmptrapd
+      state=restarted
+    when: VAR_NEC_RH_snmpd_info.trap_manager is defined

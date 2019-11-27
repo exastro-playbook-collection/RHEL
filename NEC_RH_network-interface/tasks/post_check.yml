@@ -1,0 +1,49 @@
+---
+# Check the current system interface again
+
+# Post check state
+  - name: Post check state
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep "^ONBOOT={{ item.state | regex_replace('True', 'yes') | regex_replace('False', 'no')}}" || /bin/true
+    register: ret_post_1
+    changed_when: true
+    with_items: "{{ VAR_NEC_RH_network_interface }}"
+    failed_when: not ret_post_1.stdout | search("ONBOOT={{ item.state | regex_replace('True', 'yes') | regex_replace('False', 'no')}}")
+
+# Post check dhcp
+  - name: Post check dhcp
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep "^BOOTPROTO={{ item.dhcp | regex_replace('True', 'dhcp') | regex_replace('False', 'static') }}" || /bin/true
+    register: ret_post_2
+    with_items: "{{ VAR_NEC_RH_network_interface }}"
+    when: item.state
+    failed_when: not ret_post_2.stdout | search("BOOTPROTO={{ item.dhcp | regex_replace('True', 'dhcp') | regex_replace('False', 'static')}}")
+
+# Post check ip
+  - name: post check ip
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^IPADDR={{ item.ipaddresses.0.ip }}' || /bin/true
+    register: ret_post_3
+    with_items: "{{ VAR_NEC_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+    failed_when: not ret_post_3.stdout | search("{{item.ipaddresses.0.ip}}")
+
+# Post check netmask
+  - name: post check netmask
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^PREFIX={{ item.ipaddresses.0.prefix }}' || /bin/true
+    register: ret_post_4
+    with_items: "{{ VAR_NEC_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+    failed_when: not ret_post_4.stdout | search("{{item.ipaddresses.0.prefix}}")
+
+# Post check gateway
+  - name: post check gateway
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^GATEWAY={{ item.ipaddresses.0.gateway }}' || /bin/true
+    register: ret_post_5
+    with_items: "{{ VAR_NEC_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+    failed_when: not ret_post_5.stdout | search("{{item.ipaddresses.0.gateway}}")
+

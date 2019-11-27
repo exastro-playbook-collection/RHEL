@@ -1,0 +1,9 @@
+---
+file: # ファイル収集
+  - /etc/default/grub
+  - /boot/grub2/grub.cfg
+  - /etc/kdump.conf
+command: # コマンド出力収集
+  - rpm -qa | grep kexec-tools
+  - last reboot | head -1
+  - systemctl is-active kdump.service

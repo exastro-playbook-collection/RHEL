@@ -1,0 +1,18 @@
+---
+# not check `ANSIBLE0006` by ansible-lint
+
+#pre_check
+
+ # check NetworkManager service status
+  - name: get status network manager
+    raw: systemctl is-active NetworkManager
+    register: ret_nm
+    changed_when: true
+    ignore_errors: true
+    tags:
+      - skip_ansible_lint
+
+  - name: pre_check NetworkManager
+    assert:
+      msg: "NetworkManager is running ,stop operating"
+      that: ret_nm.stdout_lines.0 != "active"

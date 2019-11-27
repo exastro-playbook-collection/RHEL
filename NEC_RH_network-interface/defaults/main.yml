@@ -1,0 +1,15 @@
+---
+# defaults file for interface
+
+# VAR_NEC_RH_network_interface:
+  # - name: ""           #インターフェース名
+    # ipaddresses: ""
+      # - ip:            #ip address(IPv6非対応)
+        # prefix:        #prefix
+        # gateway:       #gateway
+    # dhcp: false
+    # state: yes
+
+# VAR_NEC_RH_interface_gateway: '172.28.87.126'
+# VAR_NEC_RH_interface_broadcast: '172.28.87.127'
+

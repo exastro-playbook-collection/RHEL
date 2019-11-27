@@ -1,0 +1,6 @@
+---
+file:
+  - /etc/sysconfig/network-scripts/
+command:
+  - ifconfig
+  - systemctl status network

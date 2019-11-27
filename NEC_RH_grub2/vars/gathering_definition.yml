@@ -1,0 +1,6 @@
+---
+file: # ファイル収集
+  - /boot/grub2/grub.cfg
+  - /etc/default/grub
+command:
+  - last reboot | head -1

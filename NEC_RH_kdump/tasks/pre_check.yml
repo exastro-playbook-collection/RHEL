@@ -1,0 +1,6 @@
+---
+#install package
+  - name: Kdump - install package
+    yum:
+      name: kexec-tools
+      state: present

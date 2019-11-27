@@ -1,0 +1,27 @@
+---
+#
+# set syslog
+#
+
+  # - debug:
+      # msg: "{{ item.selector }}        {{ item.action }}"
+    # with_items: "{{ VAR_NEC_RH_rsyslog_rules }}"
+    # when:
+      # - item.selector is defined and not not item.selector
+      # - item.action is defined and not not item.action
+
+  - name: set syslog for rhel7
+    lineinfile:
+      dest: /etc/rsyslog.conf
+      regexp: '^#?{{ item.selector | regex_escape() }}\s+{{ item.action | regex_escape() }}\s*$'
+      line: '{{ item.selector }}        {{ item.action }}'
+    with_items: "{{ VAR_NEC_RH_rsyslog_rules }}"
+    when:
+      - item.selector is defined and not not item.selector
+      - item.action is defined and not not item.action
+
+  - name: rsyslog_restart
+    service: >
+      name=rsyslog
+      state=restarted
+

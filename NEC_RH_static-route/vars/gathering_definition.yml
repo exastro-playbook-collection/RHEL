@@ -1,0 +1,6 @@
+---
+file:
+  - /etc/sysconfig/network-scripts/
+  - /etc/sysconfig/network
+command:
+  - ip route

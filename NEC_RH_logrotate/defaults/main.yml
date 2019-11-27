@@ -1,0 +1,4 @@
+---
+#default vars
+VAR_NEC_RH_logrotate_options: []
+VAR_NEC_RH_logrotate_d_files: []

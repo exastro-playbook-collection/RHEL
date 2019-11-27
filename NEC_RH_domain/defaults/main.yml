@@ -1,0 +1,12 @@
+---
+#
+# defaults file for domain
+#
+
+# VAR_NEC_RH_domain:
+  # hostname: "AD2.test.com"      #ホスト名
+  # hostip: "192.168.1.1"         #ホストIP
+  # domainname: "test.com"        #ドメイン名
+  # user: "administrator"         #登録ユーザ名
+  # password: "abc123$%"          #登録ユーザのパスワード
+  # interface: "ens192"           #インターフェース名

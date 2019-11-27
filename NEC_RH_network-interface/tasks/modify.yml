@@ -1,0 +1,72 @@
+---
+
+# not check `ANSIBLE0016` by ansible-lint
+# change interface
+
+# change state
+  - name: change state
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^ONBOOT='
+      line: "ONBOOT={{ item.item.state | regex_replace('True', 'yes') | regex_replace('False', 'no') }}"
+    with_items: "{{ ret_pre_1.results }}"
+    when:
+      - item.changed == true
+      - item.stdout == ''
+
+# change dhcp
+  - name: change dhcp
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^BOOTPROTO='
+      line: "BOOTPROTO={{ item.item.dhcp | regex_replace('True', 'dhcp') | regex_replace('False', 'static') }}"
+    with_items: "{{ ret_pre_2.results }}"
+    when:
+      - item.changed == true
+      - item.stdout == ''
+
+  - name: change ip
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^IPADDR='
+      line: 'IPADDR={{ item.item.ipaddresses.0.ip }}'
+    with_items: "{{ ret_pre_3.results }}"
+    when:
+      - item.changed == true
+      - item.stdout == ''
+
+  - name: change netmask 1
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^NETMASK='
+      state: absent
+    with_items: "{{ ret_pre_4.results }}"
+    when:
+      - item.changed == true
+      - item.stdout != ''
+
+  - name: change netmask 2
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^PREFIX='
+      line: 'PREFIX={{ item.item.ipaddresses.0.prefix }}'
+    with_items: "{{ ret_pre_5.results }}"
+    when:
+      - item.changed == true
+      - item.stdout == ''
+
+  - name: change gateway
+    lineinfile:
+      dest: '/etc/sysconfig/network-scripts/ifcfg-{{ item.item.name }}'
+      regexp: '^GATEWAY='
+      line: 'GATEWAY={{ item.item.ipaddresses.0.gateway }}'
+    with_items: "{{ ret_pre_6.results }}"
+    when:
+      - item.changed == true
+      - item.stdout == ''
+
+# Network Restart
+  - name: restart network
+    service:
+      name: network
+      state: restarted

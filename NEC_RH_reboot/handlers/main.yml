@@ -1,0 +1,22 @@
+---
+# linux reboot role/handlers
+  - name: Run linux reboot command
+    command: shutdown -r -t 0
+    changed_when: true
+
+  - name: Wait for ssh connection down
+    wait_for: >
+      host={{ inventory_hostname }}
+      port=22
+      state=stopped
+    delegate_to: 127.0.0.1
+    become: no
+
+  - name: Wait for ssh connection up
+    wait_for: >
+      host={{ inventory_hostname }}
+      port=22
+      state=started
+      delay=30
+    delegate_to: 127.0.0.1
+    become: no

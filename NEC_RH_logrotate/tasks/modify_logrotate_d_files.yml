@@ -1,0 +1,15 @@
+---
+#modify logrotate.d/
+
+  - name : copy files to dest machine
+    copy:
+       src: '{{ item }}'
+       dest: '/etc/logrotate.d/{{ item }}'
+       force: yes
+       mode: 0644
+       owner: root
+       group: root
+    with_items: "{{ VAR_NEC_RH_logrotate_d_files }}"
+    when: item is defined
+    failed_when: item == ""
+

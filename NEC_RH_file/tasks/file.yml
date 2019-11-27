@@ -1,0 +1,83 @@
+---
+  #create directory
+
+  - name: check parameter path
+    assert:
+      that: VAR_NEC_RH_file_path != ""
+    when: VAR_NEC_RH_file_path is defined
+
+  - name: check parameter permissions
+    assert:
+      that: VAR_NEC_RH_file_permission is not none
+    when: VAR_NEC_RH_file_permission is defined
+
+  - name: check parameter VAR_NEC_RH_file_permission
+    block:
+      - name: check parameter user
+        assert:
+          that: VAR_NEC_RH_file_permission.user != ""
+        when:
+          - VAR_NEC_RH_file_permission.user is defined
+
+      - name: check parameter group
+        assert:
+          that: VAR_NEC_RH_file_permission.group != ""
+        when: VAR_NEC_RH_file_permission.group is defined
+
+      - name: check parameter mode
+        assert:
+          that: VAR_NEC_RH_file_permission.mode != ""
+        when: VAR_NEC_RH_file_permission.mode is defined
+    when: VAR_NEC_RH_file_permission is defined
+
+  - name: check parameter state
+    assert:
+      that: VAR_NEC_RH_file_state == "present" or VAR_NEC_RH_file_state == "absent"
+    when: VAR_NEC_RH_file_state is defined
+
+
+  - name: create the directory
+    file:
+      state: directory
+      path: '{{ VAR_NEC_RH_file_path | dirname }}'
+      force: yes
+    when: VAR_NEC_RH_file_state == "present"
+
+  #create file
+  - name: create the file
+    file:
+      state: touch
+      path: '{{ VAR_NEC_RH_file_path }}'
+      force: yes
+    when: VAR_NEC_RH_file_state == "present"
+
+  - name: config file the VAR_NEC_RH_file_permission
+    block:
+      - name: config file the user
+        file:
+          path: '{{ VAR_NEC_RH_file_path }}'
+          owner: "{{ VAR_NEC_RH_file_permission.user }}"
+        when: VAR_NEC_RH_file_permission.user is defined
+
+      - name: config file the group
+        file:
+          path: '{{ VAR_NEC_RH_file_path }}'
+          group: "{{ VAR_NEC_RH_file_permission.group }}"
+        when: VAR_NEC_RH_file_permission.group is defined
+
+      - name: config file the mode
+        file:
+          path: '{{ VAR_NEC_RH_file_path }}'
+          mode: '{{ VAR_NEC_RH_file_permission.mode }}'
+        when: VAR_NEC_RH_file_permission.mode is defined
+    when:
+      - VAR_NEC_RH_file_permission is defined
+      - VAR_NEC_RH_file_state == "present"
+
+  - name: delete file
+    file:
+      path: '{{ VAR_NEC_RH_file_path }}'
+      state: absent
+    when: VAR_NEC_RH_file_state == "absent"
+
+

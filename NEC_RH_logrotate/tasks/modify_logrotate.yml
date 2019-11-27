@@ -1,0 +1,42 @@
+---
+#modify logrotate.conf
+  - name: set rotate_cycle= {{ VAR_NEC_RH_logrotate_options.cycle }}
+    lineinfile:
+      dest: /etc/logrotate.conf
+      regexp: '^(daily|weekly|monthly|yearly)'
+      line: '{{ VAR_NEC_RH_logrotate_options.cycle }}'
+    when: VAR_NEC_RH_logrotate_options.cycle is defined
+    failed_when: VAR_NEC_RH_logrotate_options.cycle == ""
+
+  - name: set rotate_num={{VAR_NEC_RH_logrotate_options.rotate_num }}
+    lineinfile:
+      dest: /etc/logrotate.conf
+      regexp: '^rotate'
+      line: 'rotate {{ VAR_NEC_RH_logrotate_options.rotate_num }}'
+    when: VAR_NEC_RH_logrotate_options.rotate_num is defined
+    failed_when: VAR_NEC_RH_logrotate_options.rotate_num == None
+
+  - name: set create={{ VAR_NEC_RH_logrotate_options.create }}
+    lineinfile:
+      dest: /etc/logrotate.conf
+      regexp: '^#?create'
+      line: "{{ VAR_NEC_RH_logrotate_options.create | regex_replace('True', 'create') | regex_replace('False', '#create') }}"
+    when: VAR_NEC_RH_logrotate_options.create is defined
+    failed_when: VAR_NEC_RH_logrotate_options.create == ""
+
+  - name: set dateext={{ VAR_NEC_RH_logrotate_options.dateext }}
+    lineinfile:
+      dest: /etc/logrotate.conf
+      regexp: '^#?dateext'
+      line: "{{ VAR_NEC_RH_logrotate_options.dateext | regex_replace('True', 'dateext') | regex_replace('False', '#dateext') }}"
+    when: VAR_NEC_RH_logrotate_options.dateext is defined
+    failed_when: VAR_NEC_RH_logrotate_options.dateext == ""
+
+  - name: set compress={{ VAR_NEC_RH_logrotate_options.compress }}
+    lineinfile:
+      dest: /etc/logrotate.conf
+      regexp: '^#?compress'
+      line: "{{ VAR_NEC_RH_logrotate_options.compress | regex_replace('True', 'compress') | regex_replace('False', '#compress') }}"
+    when: VAR_NEC_RH_logrotate_options.compress is defined
+    failed_when: VAR_NEC_RH_logrotate_options.compress == ""
+

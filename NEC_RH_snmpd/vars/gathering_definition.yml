@@ -1,0 +1,8 @@
+---
+command:
+  - rpm -qa | grep net-snmp
+  - systemctl status snmpd.service
+  - systemctl status snmptrapd.service
+file:
+  - /etc/snmp/snmpd.conf
+  - /etc/snmp/snmptrapd.conf

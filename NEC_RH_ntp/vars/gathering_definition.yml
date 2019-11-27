@@ -1,0 +1,10 @@
+---
+command:
+  - rpm -qa | grep ntp
+  - systemctl status ntpd
+  # - cat /etc/ntp.conf
+  # - cat /etc/sysconfig/ntpd
+
+file:
+  - /etc/ntp.conf
+  - /etc/sysconfig/ntpd

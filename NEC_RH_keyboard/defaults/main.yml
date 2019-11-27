@@ -1,0 +1,8 @@
+---
+#
+# defaults keyboard
+#
+# VAR_NEC_RH_keyboard_reboot: false
+# VAR_NEC_RH_keyboard:
+    # keytable: jp106
+    # x11_layout: jp106

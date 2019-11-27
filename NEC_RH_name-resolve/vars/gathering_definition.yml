@@ -1,0 +1,5 @@
+---
+file:
+  - /etc/hosts
+  - /etc/resolv.conf
+  - /etc/nsswitch.conf

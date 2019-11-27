@@ -1,0 +1,10 @@
+---
+
+##############################
+# Network Restart
+##############################
+- name: network_service_restart
+  service:
+    name: network
+    state: restarted
+

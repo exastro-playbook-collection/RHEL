@@ -1,0 +1,13 @@
+---
+
+# tasks file for interface
+
+  - import_tasks: pre_check.yml
+
+  - import_tasks: modify.yml
+
+  - name: Wait a minute
+    raw: sleep 15s
+    changed_when: true
+
+  - import_tasks: post_check.yml

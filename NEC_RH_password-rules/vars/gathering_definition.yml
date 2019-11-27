@@ -1,0 +1,8 @@
+---
+file:
+  - /etc/login.defs
+  - name: /etc/pam.d/system-auth
+    symlink: yes
+command:
+  - cat /etc/pam.d/system-auth | grep '^\s*password\s\+' | grep '\s\+pam_pwquality.so'
+  - cat /etc/pam.d/system-auth | grep '^\s*password\s\+' | grep '\s\+pam_unix.so'

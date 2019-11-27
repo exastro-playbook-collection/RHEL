@@ -1,0 +1,9 @@
+---
+
+# tasks file for domain
+
+  - import_tasks: pre_check.yml
+
+  - import_tasks: modify.yml
+
+  - import_tasks: post_check.yml

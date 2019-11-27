@@ -1,0 +1,7 @@
+---
+
+  - include_tasks: modify_logrotate.yml
+    when: VAR_NEC_RH_logrotate_options !=[]
+
+  - include_tasks: modify_logrotate_d_files.yml
+    when: VAR_NEC_RH_logrotate_d_files != []

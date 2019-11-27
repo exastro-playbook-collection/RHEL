@@ -1,0 +1,6 @@
+---
+file:
+  - /etc/rsyslog.conf
+  - /etc/rsyslog.d/
+command:
+  - systemctl status rsyslog.service

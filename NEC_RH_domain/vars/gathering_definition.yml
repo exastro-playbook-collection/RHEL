@@ -1,0 +1,13 @@
+---
+file:
+  - /etc/hosts
+  - /etc/sysconfig/network-scripts/
+  - /etc/resolv.conf
+command:
+  - realm list
+  - realm list | grep 'domain-name'
+  - realm list | grep 'domain-name' | awk -F ':' '{print $2}' | sed -e 's/^[ \t]*//g' | nslookup | grep 'Server'
+  - hostname
+  - rpm -qa | grep -E 'krb5-libs|krb5-devel|pam_krb5|krb5-workstation|krb5-auth-dialog'
+  - rpm -qa | grep -E 'samba-winbind|samba|samba-common|samba-client|samba-winbind-clients|expect'
+  - systemctl status network.service

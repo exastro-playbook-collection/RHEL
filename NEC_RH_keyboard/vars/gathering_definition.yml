@@ -1,0 +1,5 @@
+---
+command: # コマンド出力収集
+  - localectl status | grep "VC Keymap"
+  - localectl status | grep "X11 Layout"
+  - localectl status

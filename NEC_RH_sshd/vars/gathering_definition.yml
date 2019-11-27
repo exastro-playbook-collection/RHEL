@@ -1,0 +1,6 @@
+---
+command:
+  - rpm -qa | grep openssh-serve
+  - systemctl status sshd.service
+file:
+  - /etc/ssh/sshd_config

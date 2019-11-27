@@ -1,0 +1,188 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+# change domain
+
+# install for rhel7
+  - name: install krb5
+    yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - pam_krb5
+      - krb5-libs
+      # - krb5-devel
+      # - krb5-workstation
+      # - krb5-auth-dialog
+    ignore_errors: true
+    when:
+      - ret_pre.stdout == ""
+
+  - name: install samba
+    yum:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - samba
+      - samba-winbind
+      - samba-common
+      - samba-client
+      - samba-winbind-clients
+    ignore_errors: true
+    when:
+      - ret_pre.stdout == ""
+
+  - name: install expect
+    yum:
+      name: expect
+      state: present
+
+  - name: change dns
+    lineinfile:
+      path: '/etc/resolv.conf'
+      regexp: '^nameserver\s*{{ VAR_NEC_RH_domain.hostip }}'
+      line: 'nameserver {{ VAR_NEC_RH_domain.hostip }}'
+      insertafter: "^search"
+      state: present
+    when:
+      - ret_pre.stdout == ""
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.hostip is defined
+      - VAR_NEC_RH_domain.hostip != ""
+
+  - name: change hosts and dns
+    block:
+      - name: change hosts
+        lineinfile:
+          path: "/etc/hosts"
+          regexp: '{{ VAR_NEC_RH_domain.hostip }}\s*{{ VAR_NEC_RH_domain.hostname }}'
+          line: "{{ VAR_NEC_RH_domain.hostip }}    {{ VAR_NEC_RH_domain.hostname }}"
+          state: present
+
+      - name: check search
+        shell: cat /etc/resolv.conf | grep search | sed 's/search //g'
+        register: ret_search
+        changed_when: ret_search.stdout.find(VAR_NEC_RH_domain.domainname) == -1
+        ignore_errors: true
+
+      - name: change domainname
+        lineinfile:
+          dest: '/etc/resolv.conf'
+          regexp: '^search'
+          line: search {{ VAR_NEC_RH_domain.domainname }} {{ ret_search.stdout_lines[0] }}
+        when: ret_search | changed
+
+    when:
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.domainname is defined
+      - VAR_NEC_RH_domain.domainname != ""
+
+# Network Restart
+  - name: network_service_restart
+    service: >
+      name=network
+      state=restarted
+
+# join domain
+  - name: new sh file
+    file:
+      path: /tmp/Joindomain.sh
+      state: touch
+      mode: 0755
+
+  - name: add comment 1 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: set timeout -1
+    register: ret_add_1
+
+  - name: set tmp variable 3
+    set_fact:
+      NEC_RH_workgroup: "{{ VAR_NEC_RH_domain.domainname.split('.')[0].upper() }}"
+    when:
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.domainname is defined
+      - VAR_NEC_RH_domain.domainname != ""
+
+  - name: set tmp variable 4
+    set_fact:
+      NEC_RH_domainname: "{{ VAR_NEC_RH_domain.domainname.upper() }}"
+    when:
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.domainname is defined
+      - VAR_NEC_RH_domain.domainname != ""
+
+  # - debug:
+      # msg: "{{ NEC_RH_workgroup }} and {{ NEC_RH_domainname }}"
+
+  - name: add comment 2 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: spawn authconfig --enablewinbind --enablewins --enablewinbindauth --smbsecurity ads --smbworkgroup={{ NEC_RH_workgroup }} --smbrealm={{ NEC_RH_domainname }} --smbservers={{ VAR_NEC_RH_domain.hostname }} --enablekrb5 --krb5realm={{ NEC_RH_domainname }} --krb5kdc={{ VAR_NEC_RH_domain.hostname }} --krb5adminserver={{ VAR_NEC_RH_domain.hostname }} --enablekrb5kdcdns --enablekrb5realmdns --enablewinbindoffline --winbindtemplateshell=/bin/bash --winbindjoin={{ VAR_NEC_RH_domain.user }} --update --enablelocauthorize --enablemkhomedir --enablewinbindusedefaultdomain
+    register: ret_add_2
+    when:
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.hostname is defined
+      - VAR_NEC_RH_domain.hostname != ""
+      - VAR_NEC_RH_domain.user is defined
+      - VAR_NEC_RH_domain.user != ""
+      - ret_add_1 | changed
+
+  - name: add comment 3 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: expect "password:"
+    register: ret_add_3
+    when: ret_add_2 | changed
+
+  - name: add comment 4 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: send "{{ VAR_NEC_RH_domain.password }}\n/r"
+    register: ret_add_4
+    when:
+      - VAR_NEC_RH_domain is defined
+      - VAR_NEC_RH_domain.password is defined
+      - VAR_NEC_RH_domain.password != ""
+      - ret_add_3 | changed
+
+  - name: add comment 5 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: expect "Joined"
+    register: ret_add_5
+    when: ret_add_4 | changed
+
+  - name: add comment 6 to file
+    lineinfile:
+      path: /tmp/Joindomain.sh
+      line: interact
+    register: ret_add_6
+    when: ret_add_5 | changed
+
+  - name: Join domain
+    raw: expect /tmp/Joindomain.sh
+    register: ret_Join
+    when: ret_add_6 | changed
+
+  # - debug:
+      # msg: "{{ ret_Join }}"
+
+  - name: Wait a minute
+    raw: sleep 30s
+    changed_when: true
+  - name: del file
+    file:
+      path: /tmp/Joindomain.sh
+      state: absent
+
+# Network Restart
+  - name: realmd_service_restart
+    service: >
+      name=realmd
+      state=restarted
+
+# Network Restart
+  - name: network_service_restart
+    service: >
+      name=network
+      state=restarted
