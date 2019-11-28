@@ -9,5 +9,4 @@
   # - selector: '*.info;mail.none;authpriv.none;cron.none'      #facility / priority
     # action: '/var/log/messages'                               #ログ出力先
 
-VAR_NEC_RH_rsyslog_rules: []
 VAR_NEC_RH_rsyslog_d_files: []

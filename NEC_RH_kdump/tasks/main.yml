@@ -10,7 +10,10 @@
     when: VAR_NEC_RH_kdump_grub_crashkernel is defined
 
   - import_tasks: modify_kdump.yml
-    when: VAR_NEC_RH_kdump != []
+    when:
+      - VAR_NEC_RH_kdump is defined
+      - VAR_NEC_RH_kdump != none
+      - VAR_NEC_RH_kdump != ""
 
   - include_tasks: post_check.yml
     when:
