@@ -23,7 +23,7 @@ Role の変数値について説明します。
 
 ### Mandatory variables
 ~~~
-* VAR_NEC_RH_grub_options:          # grub2設定に関する設定情報を指定する。
+* VAR_NEC_RH_grub2_options:          # grub2設定に関する設定情報を指定する。
                     		        # 設定したい項目のみ指定する。指定されないものは更新しないこと。
                     		        # 指定できる項目についてはgrubのmanを参照してください。
    GRUB_TIMEOUT: 5	                #
@@ -119,7 +119,7 @@ grub2を設定する場合は、提供した以下のRoleを"roles"ディレク�
 　            GRUB_TIMEOUT: 3
 　            GRUB_DEFAULT: 'saved'
 　            GRUB_DISABLE_RECOVERY: true
-　        VAR_NEC_RH_grub2_reboot: false 
+　        VAR_NEC_RH_grub2_reboot: false
 　        tags:
 　          - NEC_RH_grub2
 　  - import_playbook: linux_grub2_evidence.yml VAR_gathering_label=after

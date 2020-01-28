@@ -21,10 +21,11 @@
 
 ## Role Variables
 Role の変数値について説明します。
+注意事項：XXXXX というWindows/Linux共通の変数は廃止しました。RH_XXXXX、WIN_XXXXXというOS毎の変数設定が必要です。
 
 ### Mandatory variables
 ~~~
-　  * VAR_NEC_static_route:        # あるいはVAR_NEC_RH_static_route、静的ルート設定情報を設定する。子項目は繰り返して設定できる。
+　  * VAR_NEC_RH_static_route:     # 静的ルート設定情報を設定する。子項目は繰り返して設定できる。
 　      - interface: 'ens32'       # ネットワークインタフェース設定名を設定する。大小文字を区分する。※省略可能
 　        dest: '192.168.1.1/24'   # ネットワーク宛先のIPアドレス（Prefixを付けることは可能）を指定する。
 　                                 # destが設定されない及び0.0.0.0 、0.0.0.0/0の場合、固定ルートのゲートウェイとする。
@@ -79,7 +80,7 @@ Role の変数値について説明します。
 　    gather_facts: false
 　    roles:
 　      - role: RHEL/NEC_RH_static-route
-　        VAR_NEC_static_route: 
+　        VAR_NEC_RH_static_route: 
 　          - interface: 'ens32'
 　            dest: '192.168.1.1/24' 
 　            gateway: '192.168.1.126'
@@ -119,7 +120,7 @@ Role の変数値について説明します。
 　    gather_facts: true
 　    roles:
 　      - role: RHEL/NEC_RH_static-route
-　        VAR_NEC_static_route:
+　        VAR_NEC_RH_static_route:
 　          - interface: 'ens224'
 　            dest: '172.28.145.0/25'
 　            gateway: '172.28.145.254'

@@ -87,7 +87,7 @@ logrotate情報を設定する場合は、提供した以下のRoleを"roles"デ
 　            create: True
 　            dateext: True
 　            compress: False
-　          VAR_NEC_RH_logrotate_d_files: 
+　          VAR_NEC_RH_logrotate_d_files:
 　            - 'userconfig01'
 　            - 'userconfig02'
 　          tags:
@@ -130,7 +130,7 @@ logrotate情報を設定する場合は、提供した以下のRoleを"roles"デ
 　            create: True
 　            dateext: True
 　            compress: False
-　        VAR_NEC_RH_logrotate_d_file:
+　        VAR_NEC_RH_logrotate_d_files:
 　          - 'userconfig01'
 　          - 'userconfig02'
 　        tags:

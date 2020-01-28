@@ -22,6 +22,7 @@
 
 ## Role Variables
 ロールの変数について説明します。
+注意事項：XXXXX というWindows/Linux共通の変数は廃止しました。RH_XXXXX、WIN_XXXXXというOS毎の変数設定が必要です。
 
 ### Mandatory variables
 
@@ -30,13 +31,13 @@
 ### Optional variables  
 
 ~~~
-* VAR_NEC_RH_name_resolve_hosts:          # あるいはVAR_NEC_name_resolve_hosts、hostsファイルに設定する情報を設定します。
+* VAR_NEC_RH_name_resolve_hosts:          # hostsファイルに設定する情報を設定します。
                                           # ※子項目は繰り返して設定できます。
     - ip: 192.168.1.1                     # IPを指定します。
       hostname: test.domain.com           # ホストネームを指定します。
-* VAR_NEC_RH_name_resolve_ipv6_disabeld:  # hostsファイルにIPV6に関する情報を無効にするかどうか指定します。true\false（デフォルト値）
-* VAR_NEC_RH_name_resolve_dns:            # あるいはVAR_NEC_name_resolve_dns: DNSサーバ配置に関する変数を設定します。
-      servers:                            # DNSサーバのIPを指定します。複数のDNSサーバを設定できます。親項目が定義されたら、設定必須となります。 
+* VAR_NEC_RH_name_resolve_ipv6_disabled:  # hostsファイルにIPV6に関する情報を無効にするかどうか指定します。true\false（デフォルト値）
+* VAR_NEC_RH_name_resolve_dns:            # DNSサーバ配置に関する変数を設定します。
+      servers:                            # DNSサーバのIPを指定します。複数のDNSサーバを設定できます。親項目が定義されたら、設定必須となります。
         - 192.168.0.1
         - 192.168.10.1
       suffix:                             # DNSサーバのドメイン名を指定します。複数のDNSサーバを設定できます。
@@ -117,13 +118,13 @@
   gather_facts: true
   roles:
     - role: RHEL/NEC_RH_name-resolve
-      VAR_NEC_name_resolve_hosts:
+      VAR_NEC_RH_name_resolve_hosts:
         - ip: '192.168.1.1'
           hostname: 'test.domain.com'
         - ip: '192.168.1.2'
           hostname: 'AD1.domain.com'
-      VAR_NEC_RH_name_resolve_ipv6_disabeld: false
-      VAR_NEC_name_resolve_dns:
+      VAR_NEC_RH_name_resolve_ipv6_disabled: false
+      VAR_NEC_RH_name_resolve_dns:
           servers:
             - '192.168.10.1'
             - '192.168.20.1'
@@ -170,13 +171,13 @@
   gather_facts: true
   roles:
     - role: RHEL/NEC_RH_name-resolve
-      VAR_NEC_name_resolve_hosts:
+      VAR_NEC_RH_name_resolve_hosts:
         - ip: '192.168.1.1'
           hostname: 'test.domain.com'
         - ip: '192.168.1.2'
           hostname: 'AD1.domain.com'
-      VAR_NEC_RH_name_resolve_ipv6_disabeld: false
-      VAR_NEC_name_resolve_dns:
+      VAR_NEC_RH_name_resolve_ipv6_disabled: false
+      VAR_NEC_RH_name_resolve_dns:
           servers:
             - '192.168.10.1'
             - '192.168.20.1'

@@ -39,7 +39,7 @@
     - server: "192.168.20.1"
       op: "del"
 * VAR_NEC_RH_ntp_clearflag: True  # 既存servers設定を全部クリアするかどうかを設定します。True/False（デフォルト値）
-* VAR_NEC_RH_ntp_option:          # NTPオプション情報を設定します。
+* VAR_NEC_RH_ntp_options:         # NTPオプション情報を設定します。
       slew: True                  # slewモード（True/False）を指定します。
 ~~~
 
@@ -85,7 +85,7 @@
 ~~~
 # linux_ntp.yml
 ---
-- name: ntp setting 
+- name: ntp setting
   gather_facts: true
   hosts: rhel
   roles:  
@@ -100,7 +100,7 @@
         - server: '192.168.21.1'
           op: 'del'
       VAR_NEC_RH_ntp_clearflag: True
-      VAR_NEC_RH_ntp_option:
+      VAR_NEC_RH_ntp_options:
           slew: True
       tags:
         - NEC_RH_ntp
@@ -132,7 +132,7 @@
 ---
 - import_playbook: linux_ntp_evidence.yml VAR_gathering_label=before
 
-- name: ntp setting 
+- name: ntp setting
   gather_facts: true
   hosts: rhel
   roles:  
@@ -147,7 +147,7 @@
         - server: '192.168.21.1'
           op: 'del'
       VAR_NEC_RH_ntp_clearflag: True
-      VAR_NEC_RH_ntp_option:
+      VAR_NEC_RH_ntp_options:
           slew: True
 
 - import_playbook: linux_ntp_evidence.yml VAR_gathering_label=after
