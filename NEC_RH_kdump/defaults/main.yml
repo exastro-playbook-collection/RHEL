@@ -1,4 +1,0 @@
----
-#default vars
-
-VAR_NEC_RH_kdump_reboot: false

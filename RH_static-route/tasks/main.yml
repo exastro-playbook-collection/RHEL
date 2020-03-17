@@ -1,0 +1,20 @@
+---
+#Linux static routing modify
+
+  - include_tasks : pre_check.yml
+    when:
+      - VAR_RH_static_route is defined
+      - VAR_RH_static_route is not none
+      - VAR_RH_static_route != ""
+
+  - import_tasks : modify_route.yml
+    when:
+      - VAR_RH_static_route is defined
+      - VAR_RH_static_route is not none
+      - VAR_RH_static_route != ""
+
+  - import_tasks : post_check.yml
+    when:
+      - VAR_RH_static_route is defined
+      - VAR_RH_static_route is not none
+      - VAR_RH_static_route != ""

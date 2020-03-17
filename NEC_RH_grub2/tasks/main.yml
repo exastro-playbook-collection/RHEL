@@ -1,8 +1,0 @@
----
-# not check `COMPLIANCE020201` by ansible-lint
-#/etc/default/grub
-  - name: set variable NEC_RH_reboot_required
-    set_fact:
-      NEC_RH_reboot_required: "{{ NEC_RH_reboot_required | d(false) }}"
-
-  - import_tasks: modify.yml

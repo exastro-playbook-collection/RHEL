@@ -1,0 +1,76 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+# Linux change the Keyboard
+  - name: set the reboot variable
+    set_fact:
+      RH_reboot_required: "{{ RH_reboot_required | d(false) }}"
+
+  - name: Check if the parameter is defined
+    fail:
+      msg: "VAR_RH_keyboard is not defined."
+    when: VAR_RH_keyboard is not defined
+
+  - name: Check if the parameter is empty
+    fail:
+      msg: "Parameter VAR_RH_keyboard is NULL."
+    when:
+      - VAR_RH_keyboard is defined
+      - VAR_RH_keyboard == "" or VAR_RH_keyboard is none
+
+  - name: get keyboard list
+    command: "localectl list-keymaps"
+    register: ret_list
+    changed_when: ret_list != 0
+
+  - name: Check if the parameters 1 is correct
+    fail:
+      msg: "Parameter VAR_RH_keyboard.keytable is incorrect."
+    when:
+      - VAR_RH_keyboard.keytable is defined
+      - VAR_RH_keyboard.keytable not in ret_list.stdout_lines
+
+
+  - name: Check if the parameters 2 is correct
+    fail:
+      msg: "Parameter VAR_RH_keyboard.x11_layout is incorrect."
+    when:
+      - VAR_RH_keyboard.x11_layout is defined
+      - VAR_RH_keyboard.x11_layout not in ret_list.stdout_lines
+
+  - name: Get keyboard settings information
+    command: "localectl status"
+    register: keyboard_state
+    changed_when: keyboard_state != 0
+
+  - name: set keyboard set-keymap
+    command: "localectl --no-convert set-keymap {{ VAR_RH_keyboard.keytable }}"
+    register: key_ret
+    when:
+      - VAR_RH_keyboard.keytable is defined
+      - VAR_RH_keyboard.keytable not in keyboard_state.stdout_lines.1.split()
+
+
+  - name: set keyboard set-x11-keymap
+    command: "localectl --no-convert set-x11-keymap {{ VAR_RH_keyboard.x11_layout }}"
+    register: x11_ret
+    when:
+      - VAR_RH_keyboard.x11_layout is defined
+      - VAR_RH_keyboard.x11_layout not in keyboard_state.stdout_lines.2.split()
+
+  - name: notify reboot
+    set_fact:
+    changed_when: true
+    notify:
+      - Run linux reboot command
+      - Wait for ssh connection down
+      - Wait for ssh connection up
+    when:
+      - (key_ret is changed) or (x11_ret is changed)
+      - VAR_RH_keyboard_reboot == true
+
+  - meta: flush_handlers
+
+  - name: change reboot required value
+    set_fact:
+      RH_reboot_required: "{{ not VAR_RH_keyboard_reboot }}"
+    when: (key_ret is changed) or (x11_ret is changed)

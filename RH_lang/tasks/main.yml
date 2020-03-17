@@ -1,0 +1,54 @@
+---
+  - name: check VAR_RH_lang defined
+    fail:
+      msg: "Parameter VAR_RH_lang is not defined."
+    when: VAR_RH_lang is not defined
+
+  - name: check VAR_RH_lang null
+    fail:
+      msg: "Parameter VAR_RH_lang is NULL."
+    when: VAR_RH_lang is none or VAR_RH_lang == ""
+
+  - name: set all lang name to all_lang_name
+    command: "localectl list-locales"
+    register: all_lang_name
+    changed_when: all_lang_name.rc != 0
+
+  - name: if has UTF-8 set param VAR_RH_lang
+    block:
+      - name: split param VAR_RH_lang
+        set_fact:
+          split_str: "{{ VAR_RH_lang.split('.UTF-8') }}"
+
+      - name: join param
+        set_fact:
+          str_tmp: "{{ [split_str[0],split_str[1] ] | join('.utf8') }}"
+    when: "'.UTF-8' in VAR_RH_lang"
+
+  - name: if no UTF-8
+    set_fact:
+      str_tmp: "{{ VAR_RH_lang }}"
+    when: str_tmp is undefined
+
+  - name: check VAR_RH_lang is correct
+    fail:
+      msg: "The value of parameter VAR_RH_lang is incorrect."
+    when:
+      - str_tmp != "C"
+      - str_tmp not in all_lang_name.stdout_lines
+
+  - name: an empty file will be created if the path does not exist
+    file:
+      path: /etc/locale.conf
+      state: touch
+
+  - name: delete lang
+    lineinfile:
+      path: /etc/locale.conf
+      regexp: '^LANG[\s|\t]*='
+      state: absent
+
+  - name: add lang
+    lineinfile:
+      path: /etc/locale.conf
+      line: 'LANG={{ VAR_RH_lang }}'

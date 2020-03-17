@@ -1,0 +1,12 @@
+---
+#
+# defaults runlevel
+#
+
+# VAR_RH_runlevel: multi-user.target
+#   poweroff.target
+#   rescue.target
+#   multi-user.target
+#   graphical.target
+#   reboot.target
+

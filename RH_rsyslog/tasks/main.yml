@@ -1,0 +1,22 @@
+---
+#
+# tasks file for syslog setting
+#
+
+#
+  - include_tasks: modify.yml
+    when:
+      - VAR_RH_rsyslog_rules is defined
+      - VAR_RH_rsyslog_rules != none
+      - VAR_RH_rsyslog_rules != ""
+      - VAR_RH_rsyslog_rules != []
+
+  # - debug:
+      # var: VAR_RH_rsyslog_d_files
+
+  - include_tasks: modify_rsyslog_d_files.yml
+    when:
+      - VAR_RH_rsyslog_d_files is defined
+      - VAR_RH_rsyslog_d_files != none
+      - VAR_RH_rsyslog_d_files != ""
+      - VAR_RH_rsyslog_d_files != []

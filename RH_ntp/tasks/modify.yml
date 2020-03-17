@@ -1,0 +1,148 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+# set ntp
+
+  - name: check parameter 1
+    assert:
+      msg: "The ntp server is undefined!"
+      that: item.server is defined and (item.server is defined and not not item.server)
+    with_items: "{{ VAR_RH_ntp_servers }}"
+
+  - name: check parameter 2
+    assert:
+      msg: "The ntp op(parameter) is invalid!"
+      that: item.op is defined and (item.op.lower() == "add" or item.op.lower() == "upd" or item.op.lower() == "del")
+    with_items: "{{ VAR_RH_ntp_servers }}"
+
+  - name: check parameter 3
+    assert:
+      msg: "The ntp prefer(parameter) is invalid!"
+      that: item.prefer is defined and (item.prefer == true or item.prefer == false)
+    with_items: "{{ VAR_RH_ntp_servers }}"
+    when: item.op.lower() == "add" or item.op.lower() == "upd"
+
+  - name: check parameter 4
+    assert:
+      msg: "The options slew(parameter) is invalid!"
+      that: VAR_RH_ntp_options.slew == true or VAR_RH_ntp_options.slew == false
+    when:
+      - VAR_RH_ntp_options is defined
+      - VAR_RH_ntp_options.slew is defined
+
+  - name: check parameter 5
+    assert:
+      msg: "The VAR_RH_ntp_clearflag (parameter) is invalid!"
+      that: VAR_RH_ntp_clearflag == true or VAR_RH_ntp_clearflag == false
+    when:
+      - VAR_RH_ntp_clearflag is defined
+
+
+# set tmp var
+  - name: set tmp var ntp 1
+    set_fact:
+      VAR_RH_ntp_options_slew: "{{ VAR_RH_ntp_options.slew | d('true')}}"
+    when: VAR_RH_ntp_options is defined
+
+  - name: set tmp var ntp 2
+    set_fact:
+      VAR_RH_ntp_options_slew: true
+    when: VAR_RH_ntp_options is undefined
+
+  - name: set tmp var ntp 3
+    set_fact:
+      VAR_RH_ntp_clearflag: false
+    when: VAR_RH_ntp_clearflag is undefined
+
+  - name: set tmp var ntp 4
+    set_fact:
+      _ntp_servers_res: "{{ VAR_RH_ntp_servers[::-1] }}"
+
+# install package
+  - name: install package
+    yum:
+      name: ntp
+      state: present
+    when: VAR_RH_ntp_servers is defined
+
+  - name: start and enable service
+    service:
+      name: 'ntpd'
+      state: 'started'
+      enabled: yes
+    when: VAR_RH_ntp_servers is defined
+
+  - name: Set after delete
+    block:
+      - name: delete the all servers entry
+        lineinfile:
+          dest: '/etc/ntp.conf'
+          state: absent
+          regexp: '^\s*server'
+
+      - name: add the new ntp servers
+        lineinfile:
+          dest: '/etc/ntp.conf'
+          insertafter: '# Please consider joining the pool'
+          line: "server {{ item.server }} iburst {% if item.prefer %}prefer{% endif %}"
+          state: present
+        with_items: "{{ _ntp_servers_res }}"
+        when:
+          - item is defined
+          - item.op.lower() == 'add' or item.op.lower() == 'upd'
+    when: VAR_RH_ntp_clearflag
+
+# register ntp server
+  - name: Normal setting
+    block:
+      - name: add ntp servers
+        lineinfile:
+          dest: '/etc/ntp.conf'
+          insertafter: '# Please consider joining the pool'
+          line: "server {{ item.server }} iburst {% if item.prefer %}prefer{% endif %}"
+          state: present
+        with_items: "{{ _ntp_servers_res }}"
+        when:
+          - item is defined
+          - item.op.lower() == 'add'
+
+      - name: update ntp server
+        lineinfile:
+          dest: '/etc/ntp.conf'
+          regexp: '^\s*server {{ item.server }} iburst'
+          line: "server {{ item.server }} iburst {% if item.prefer %}prefer{% endif %}"
+          state: present
+        with_items: "{{ _ntp_servers_res }}"
+        when:
+          - item is defined
+          - item.op.lower() == 'upd'
+
+      - name: delete ntp server
+        lineinfile:
+          dest: '/etc/ntp.conf'
+          regexp: '^\s*server {{ item.server }} iburst'
+          state: absent
+        with_items: "{{ _ntp_servers_res }}"
+        when:
+          - item is defined
+          - item.op.lower() == 'del'
+    when: not VAR_RH_ntp_clearflag
+
+# slew mode
+  - name: enable slew mode
+    lineinfile:
+      dest: '/etc/sysconfig/ntpd'
+      regexp: '^\s*OPTIONS*'
+      line: "OPTIONS=\"-x -u ntp:ntp -p /var/run/ntpd.pid -g\""
+    when: VAR_RH_ntp_options_slew == true
+
+  - name: disable slew mode
+    lineinfile:
+      dest: '/etc/sysconfig/ntpd'
+      regexp: '^\s*OPTIONS=*'
+      line: "OPTIONS=\"-u ntp:ntp -p /var/run/ntpd.pid -g\""
+    when: VAR_RH_ntp_options_slew == false
+
+  - name: ntpd_restart
+    service: >
+      name=ntpd
+      state=restarted

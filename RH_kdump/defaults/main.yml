@@ -1,0 +1,4 @@
+---
+#default vars
+
+VAR_RH_kdump_reboot: false

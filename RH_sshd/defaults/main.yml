@@ -1,0 +1,8 @@
+---
+# defaults file for sshd setting
+
+# VAR_RH_sshd_config:                 #sshd設定
+  # - key: PermitRootLogin
+    # value: yes                  #rootユーザのログインを許可
+  # - key: PasswordAuthentication
+    # value: yes           #パスワード認証を許可

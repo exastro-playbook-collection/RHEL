@@ -1,0 +1,6 @@
+---
+#reboot/tasks
+
+  - import_tasks: ../handlers/main.yml
+    when:  not (RH_reboot_nop |d(false))
+

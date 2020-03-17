@@ -1,0 +1,9 @@
+---
+
+# Post Check
+
+  - name: post check domain
+    raw: realm list
+    register: ret_post
+    failed_when: not ret_post.stdout is search(VAR_RH_domain.domainname)
+    changed_when: true

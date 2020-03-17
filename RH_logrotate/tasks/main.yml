@@ -1,0 +1,14 @@
+---
+
+  - include_tasks: modify_logrotate.yml
+    when:
+      - VAR_RH_logrotate_options is defined
+      - VAR_RH_logrotate_options != none
+      - VAR_RH_logrotate_options != ""
+
+  - include_tasks: modify_logrotate_d_files.yml
+    when:
+      - VAR_RH_logrotate_d_files is defined
+      - VAR_RH_logrotate_d_files != none
+      - VAR_RH_logrotate_d_files != ""
+      - VAR_RH_logrotate_d_files != []

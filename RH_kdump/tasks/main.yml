@@ -1,0 +1,21 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+  - name: set variable RH_reboot_required
+    set_fact:
+      RH_reboot_required: "{{ RH_reboot_required | d(false) }}"
+
+  - import_tasks: pre_check.yml
+
+  - import_tasks: modify_grub.yml
+    when: VAR_RH_kdump_grub_crashkernel is defined
+
+  - import_tasks: modify_kdump.yml
+    when:
+      - VAR_RH_kdump is defined
+      - VAR_RH_kdump != none
+      - VAR_RH_kdump != ""
+
+  - include_tasks: post_check.yml
+    when:
+      - VAR_RH_kdump_reboot == true
+      - (file_ret1 is changed) or (file_ret2 is changed)

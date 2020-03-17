@@ -1,0 +1,56 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+  - name: check parameters 1
+    assert:
+      that: "VAR_RH_kdump_grub_crashkernel != '' "
+
+# get line GRUB_CMDLINE_LINUX
+  - name: get line GRUB_CMDLINE_LINUX
+    shell:  cat /etc/default/grub |grep GRUB_CMDLINE_LINUX | sed 's/\"//g' | sed 's/\GRUB_CMDLINE_LINUX=//g'
+    register: ret_grub
+    changed_when: false
+
+  - name: set_fact new_line
+    set_fact:
+       new_cmdline: "{{ret_grub.stdout_lines.0}} crashkernel={{VAR_RH_kdump_grub_crashkernel}}"
+    when: ret_grub.stdout.find('crashkernel') == -1
+
+#replace line and reboot linux must
+  - name: replace line GRUB_CMDLINE_LINUX
+    lineinfile:
+      path: '/etc/default/grub'
+      regexp: '^GRUB_CMDLINE_LINUX'
+      line: 'GRUB_CMDLINE_LINUX="{{new_cmdline}}"'
+      state: present
+    register: file_ret1
+    when: ret_grub.stdout.find('crashkernel') == -1
+
+  - name: replace crashkernel
+    replace:
+      path: '/etc/default/grub'
+      regexp: 'crashkernel=([\w\S]*\b)'
+      replace: 'crashkernel={{ VAR_RH_kdump_grub_crashkernel }}'
+    register: file_ret2
+    when: ret_grub.stdout.find('crashkernel') != -1
+
+  - name: apply_grub_config
+    raw: grub2-mkconfig -o /boot/grub2/grub.cfg
+    when: (file_ret1 is changed) or (file_ret2 is changed)
+
+  - name: notify reboot
+    set_fact:
+    changed_when: true
+    notify:
+      - Run linux reboot command
+      - Wait for ssh connection down
+      - Wait for ssh connection up
+    when:
+      - (file_ret1 is changed) or (file_ret2 is changed)
+      - VAR_RH_kdump_reboot == true
+
+  - meta: flush_handlers
+
+  - name: change reboot required value
+    set_fact:
+      RH_reboot_required: "{{ not VAR_RH_kdump_reboot }}"
+    when: (file_ret1 is changed) or (file_ret2 is changed)

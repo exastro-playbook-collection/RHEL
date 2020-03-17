@@ -1,0 +1,13 @@
+---
+#
+# default vars file for syslog setting
+#
+
+# VAR_RH_rsyslog_rules:                #syslog設定
+  # - selector: 'local7.*'                 #facility / priority
+    # action: '/var/log/boot.log'          #ログ出力先
+  # - selector: '*.info;mail.none;authpriv.none;cron.none'      #facility / priority
+    # action: '/var/log/messages'                               #ログ出力先
+
+VAR_RH_rsyslog_rules: []
+VAR_RH_rsyslog_d_files: []

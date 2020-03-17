@@ -1,0 +1,53 @@
+---
+
+# not check `ANSIBLE0006` by ansible-lint
+# Pre Check
+
+  - name: get status network manager
+    raw: systemctl is-active NetworkManager
+    register: ret_nm
+    changed_when: true
+    ignore_errors: true
+    tags:
+      - skip_ansible_lint
+
+  - name: check NetworkManager status
+    assert:
+      msg: "NetworkManager is running ,stop operating"
+      that: ret_nm.stdout_lines.0 != "active"
+
+  - name: check parameter 1
+    assert:
+      msg: "the hostname(parameter) is invalid."
+      that: (VAR_RH_domain.hostname is defined) and (not not VAR_RH_domain.hostname)
+
+  - name: check parameter 2
+    assert:
+      msg: "the hostip(parameter) is invalid."
+      that: (VAR_RH_domain.hostip is defined) and (not not VAR_RH_domain.hostip)
+
+  - name: check parameter 3
+    assert:
+      msg: "the domainname(parameter) is invalid."
+      that: (VAR_RH_domain.domainname is defined) and (not not VAR_RH_domain.domainname)
+
+  - name: check parameter 4
+    assert:
+      msg: "the user(parameter) is invalid."
+      that: (VAR_RH_domain.user is defined) and (not not VAR_RH_domain.user)
+
+  - name: check parameter 5
+    assert:
+      msg: "the password(parameter) is invalid."
+      that: (VAR_RH_domain.password is defined) and (not not VAR_RH_domain.password)
+
+  - name: install realmd
+    yum:
+      name: realmd
+      state: present
+
+# check domain
+  - name: check domain
+    raw: realm list
+    register: ret_pre
+    changed_when: true

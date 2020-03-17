@@ -1,0 +1,38 @@
+---
+# not check `COMPLIANCE020201` by ansible-lint
+#modify
+  - name: Grub - set grub option
+    lineinfile:
+      path: /etc/default/grub
+      regexp: '{{ item.key }}'
+      line: '{{ item.key }}="{{ item.value }}"'
+      state: present
+    with_dict: "{{VAR_RH_grub2_options}}"
+    register: ret
+    failed_when: item.value == None or item.value == ''
+    when: item is defined
+
+  - name: mkconfig grub2
+    raw: grub2-mkconfig -o /boot/grub2/grub.cfg
+    when: ret is changed
+
+  - name: notify reboot handlers
+    set_fact:
+    changed_when: true
+    notify:
+      - Run linux reboot command
+      - Wait for ssh connection down
+      - Wait for ssh connection up
+    when:
+     - ret is changed
+     - VAR_RH_grub2_reboot == true
+
+  - meta: flush_handlers
+
+  - name: changed required value
+    set_fact:
+      RH_reboot_required: "{{ not VAR_RH_grub2_reboot }}"
+    when: ret is changed
+
+  # - debug:
+      # msg: "required: {{ RH_reboot_required }}"

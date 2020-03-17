@@ -1,0 +1,122 @@
+---
+#
+# not check `COMPLIANCE030206` by ansible-lint
+# Check the current system interface
+#
+# check parameter
+  - name: check parameter 1
+    assert:
+      msg: "The interface name is undefined!"
+      that: item.name is defined and (item.name is defined and not not item.name)
+    with_items: "{{ VAR_RH_network_interface }}"
+
+# Check if ifcfgfile is exist or not
+  - name: Check if ifcfgfile is exist or not
+    stat:
+      path: "/etc/sysconfig/network-scripts/ifcfg-{{ item.name }}"
+    register: ifcfg_Exist
+    with_items: "{{ VAR_RH_network_interface }}"
+
+  # - debug:
+      # msg: "{{ifcfg_Exist.results}}"
+
+  - name: ifcfgfile is not exist
+    assert:
+      msg: "ifcfg-{{ item.0.name }} is not exist!"
+      that: item.1.stat.exists == true
+    with_together:
+      - "{{ VAR_RH_network_interface }}"
+      - "{{ifcfg_Exist.results}}"
+
+# check parameter
+  - name: check parameter 2
+    assert:
+      msg: "state is undefined!"
+      that: item.state is defined
+    with_items: "{{ VAR_RH_network_interface }}"
+
+  - name: check parameter 3
+    assert:
+      msg: "dhcp is undefined!"
+      that: item.dhcp is defined
+    with_items: "{{ VAR_RH_network_interface }}"
+    when: item.state
+
+  - name: check parameter 4-1
+    assert:
+      msg: "ipaddresses is undefined!"
+      that: item.ipaddresses is defined
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+
+  - name: check parameter 4-2
+    debug:
+      msg: "The them(ip,prefix,gateway) is only one when set static ip!"
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+      - item.ipaddresses is defined
+      - item.ipaddresses.1 is defined
+    tags:
+      - skip_ansible_lint
+
+  - name: check parameter 4-3
+    assert:
+      msg: "One of the them(ip,prefix,gateway) is invalid when set static ip."
+      that: ((item.ipaddresses.0.ip is defined) and (not not item.ipaddresses.0.ip)) or ((item.ipaddresses.0.prefix is defined) and (not not item.ipaddresses.0.prefix)) or ((item.ipaddresses.0.gateway is defined) and (not not item.ipaddresses.0.gateway))
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+
+# check state
+  - name: check state
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep "^ONBOOT={{ item.state | regex_replace('True', 'yes') | regex_replace('False', 'no')}}" || /bin/true
+    register: ret_pre_1
+    changed_when: true
+    with_items: "{{ VAR_RH_network_interface }}"
+
+# check dhcp
+  - name: check dhcp
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep "^BOOTPROTO={{ item.dhcp | regex_replace('True', 'dhcp') | regex_replace('False', 'static') }}" || /bin/true
+    register: ret_pre_2
+    with_items: "{{ VAR_RH_network_interface }}"
+    when: item.state
+
+# check ip
+  - name: check ip
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^IPADDR={{ item.ipaddresses.0.ip }}' || /bin/true
+    register: ret_pre_3
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+
+# check netmask
+  - name: check netmask 1
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^NETMASK=' || /bin/true
+    register: ret_pre_4
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+
+  - name: check netmask 2
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^PREFIX={{ item.ipaddresses.0.prefix }}' || /bin/true
+    register: ret_pre_5
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false
+
+# check gateway
+  - name: check gateway
+    shell: cat /etc/sysconfig/network-scripts/ifcfg-{{ item.name }} | grep '^GATEWAY={{ item.ipaddresses.0.gateway }}' || /bin/true
+    register: ret_pre_6
+    with_items: "{{ VAR_RH_network_interface }}"
+    when:
+      - item.state
+      - item.dhcp == false

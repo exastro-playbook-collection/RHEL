@@ -1,0 +1,25 @@
+---
+
+  - include_tasks: pre_check_nm.yml
+    when:
+      - VAR_RH_name_resolve_dns is defined
+      - VAR_RH_name_resolve_dns is not none
+      - VAR_RH_name_resolve_dns != ""
+
+  - include_tasks: modify_hosts.yml
+    when:
+      - VAR_RH_name_resolve_hosts is defined
+      - VAR_RH_name_resolve_hosts is not none
+      - VAR_RH_name_resolve_hosts != ""
+
+  - include_tasks: modify_resolve.yml
+    when:
+      - VAR_RH_name_resolve_dns is defined
+      - VAR_RH_name_resolve_dns is not none
+      - VAR_RH_name_resolve_dns != ""
+
+  - include_tasks: modify_nsswitch.yml
+    when:
+      - VAR_RH_name_resolve_nsswitch is defined
+      - VAR_RH_name_resolve_nsswitch is not none
+      - VAR_RH_name_resolve_nsswitch != ""

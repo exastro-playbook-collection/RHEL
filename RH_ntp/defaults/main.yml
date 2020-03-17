@@ -1,0 +1,10 @@
+---
+
+# defaults file for ntp setting
+
+# VAR_RH_ntp_servers:                    #prefer
+  # - server: "127.0.0.1"                    #タイムサーバ(IPv6非対応)
+    # prefer: False                          #prefer
+    # op: "add"
+# VAR_RH_ntp_options:                    #NTPオプション
+  # slew: True                               #slewモード

@@ -1,0 +1,84 @@
+---
+# not check `ANSIBLE0006` by ansible-lint
+
+#modify resolve
+  - name: modify nameserver
+    block:
+      - name: get the old nameserver
+        shell: cat /etc/resolv.conf | grep '^\s*nameserver'
+        register: ret
+        ignore_errors: true
+
+      - name: delete the old nameserver
+        lineinfile:
+          path: '/etc/resolv.conf'
+          regexp: '^\s*nameserver'
+          state: absent
+
+      - name: modify nameserver
+        lineinfile:
+          path: '/etc/resolv.conf'
+          insertafter: '^\s*nameserver'
+          line: 'nameserver {{ item }}'
+          state: present
+        with_items:
+          - "{{ VAR_RH_name_resolve_dns.servers }}"
+        when: item != ""
+
+      - name: add the old nameserver
+        lineinfile:
+          path: '/etc/resolv.conf'
+          insertafter: '^\s*nameserver'
+          line: "{{ item }}"
+          state: present
+        with_items:
+          - "{{ ret.stdout_lines }}"
+        notify: network_service_restart
+
+    when:
+      - VAR_RH_name_resolve_dns.servers is defined
+      - VAR_RH_name_resolve_dns.servers is not none
+      - VAR_RH_name_resolve_dns.servers != ""
+# add search domain
+  - name: modify the search
+    block:
+      - name: check search
+        shell: cat /etc/resolv.conf | grep '^\s*search' | sed 's/search//g'
+        register: ret
+        changed_when: true
+        ignore_errors: true
+        tags:
+          - skip_ansible_lint
+
+      - name: Set temporary variables 2
+        set_fact:
+          _search_suffix_: "{{ ret.stdout.split() }}"
+
+      - name: Set temporary variables 3
+        set_fact:
+          _search_new_str_: "search"
+
+      - name: temporary variables 4
+        set_fact:
+          _search_new_str_: "{{ [_search_new_str_,item] | join(' ')}}"
+        with_items: "{{ VAR_RH_name_resolve_dns.suffix }}"
+        when: item != ""
+
+      - name: temporary variables 5
+        set_fact:
+          _search_new_str_: "{{ [_search_new_str_,item] | join(' ')}}"
+        with_items: "{{ _search_suffix_ }}"
+        when: not item in VAR_RH_name_resolve_dns.suffix
+
+      - name: modify search
+        lineinfile:
+          path: '/etc/resolv.conf'
+          regexp: '^\s*search'
+          line: "{{ _search_new_str_ }}"
+          state: present
+    when:
+      - VAR_RH_name_resolve_dns.suffix is defined
+      - VAR_RH_name_resolve_dns.suffix is not none
+      - VAR_RH_name_resolve_dns.suffix != ""
+
+  - meta: flush_handlers
